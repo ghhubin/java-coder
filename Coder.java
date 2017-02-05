@@ -29,6 +29,11 @@ public class  Coder
 	//tab3
 	private JButton des_but1,des_but2,des_but3;
 	private MJTextField des_tf1,des_tf2,des_tf3,des_tf4;
+	private JRadioButton des_jrb1,des_jrb2,des_jrb3,des_jrb4;
+	private ButtonGroup  des_bg1,des_bg2;
+	private int cipher_algorithm = 0;  //0: AES    1: 3DES
+	private int encrypt_mode = 0;   //0: CBC   1: ECB
+	private String tmpIV = "";
 	
 	Coder()
 	{
@@ -37,7 +42,7 @@ public class  Coder
 
 	public void init()
 	{
-		jf = new JFrame("Coder");
+		jf = new JFrame("Coder 1.0.0");
 
 		jf.setBounds(300,300,600,500);
 		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -56,7 +61,7 @@ public class  Coder
 		tp.setEnabledAt(0,true);
 		tp.addTab("cipher", jpl2);
 		tp.setEnabledAt(1,true);
-		tp.addTab("3DES", jpl3);
+		tp.addTab("AES/3DES", jpl3);
 		tp.setEnabledAt(2,true);
         
 		//Tab1
@@ -113,10 +118,16 @@ public class  Coder
 		des_tf2 = new MJTextField(40);
 		des_tf3 = new MJTextField(40);
 		des_tf4 = new MJTextField(40);
+		
+		des_jrb1 = new JRadioButton("AES",true);
+		des_jrb2 = new JRadioButton("3DES");
+		des_jrb3 = new JRadioButton("CBC",true);
+		des_jrb4 = new JRadioButton("ECB");
+		
 		des_but1 = new JButton("Encrypt");
 		des_but2 = new JButton("Decrypt");
 		des_but3 = new JButton("Clear");
-				
+		
 		jpl3.add(new JLabel("    Plaintext   "));
 		jpl3.add(des_tf1);
 		jpl3.add(new JLabel(" Ciphertext   "));
@@ -125,10 +136,23 @@ public class  Coder
 		jpl3.add(des_tf3);
 		jpl3.add(new JLabel("               Iv    "));
 		jpl3.add(des_tf4);
+		
 		jpl3.add(des_but1);
 		jpl3.add(des_but2);
 		jpl3.add(des_but3);
-				
+		
+		des_bg1 = new ButtonGroup();
+		des_bg1.add(des_jrb1);
+		des_bg1.add(des_jrb2);
+		des_bg2 = new ButtonGroup();
+		des_bg2.add(des_jrb3);
+		des_bg2.add(des_jrb4);
+		jpl3.add(des_jrb1);
+		jpl3.add(des_jrb2);
+		jpl3.add(des_jrb3);
+		jpl3.add(des_jrb4);
+		
+		
 		//加载一下窗体上事件。
 		tab1_Event();
 		
@@ -347,26 +371,51 @@ public class  Coder
 			{
 				public void actionPerformed(ActionEvent e)
 				{
-					String strKey = des_tf3.getText();
+				    String strKey = des_tf3.getText();
 					String strIv = des_tf4.getText();
-					byte[] data,key,iv;
+					byte[] data,key,iv,ciphertext;
+						
+					switch (cipher_algorithm) {   
+					    case 0:   // AES
+					        break;
+					    
+					    case 1:  // 3DES
+					        if (encrypt_mode == 0)  {  //CBC
+					            if (strKey.length() != 24) {
+						            des_tf2.setText("---The length of the key must be 24!----");
+						            return;
+					            }
+					            if (strIv.length() != 8) {
+						            des_tf2.setText("---The length of the IV must be 8!----");
+						            return;
+					            }
 					
-					if (strKey.length() != 24) {
-						des_tf2.setText("---The length of the key must be 24!----");
-						return;
-					}
-					if (strIv.length() != 8) {
-						des_tf2.setText("---The length of the IV must be 8!----");
-						return;
-					}
+					            try {
+					                data = des_tf1.getText().getBytes(coding_scheme);
+					                key = strKey.getBytes(coding_scheme);
+					                iv = strIv.getBytes(coding_scheme);
+					                ciphertext = des3u.des3EncodeCBC(key, iv, data); 
+					                des_tf2.setText(Base64.getEncoder().encodeToString(ciphertext));
+					            } catch (Exception e1) { return; }
+					        }
+					        else if (encrypt_mode == 1) { //ECB
+					        	if (strKey.length() != 24) {
+						            des_tf2.setText("---The length of the key must be 24!----");
+						            return;
+					            }
 					
-					try {
-					    data = des_tf1.getText().getBytes(coding_scheme);
-					    key = strKey.getBytes(coding_scheme);
-					    iv = strIv.getBytes(coding_scheme);
-					    byte[] ciphertext = des3u.des3EncodeCBC(key, iv, data); 
-					    des_tf2.setText(Base64.getEncoder().encodeToString(ciphertext));
-					} catch (Exception e1) { return; }
+					            try {
+					                data = des_tf1.getText().getBytes(coding_scheme);
+					                key = strKey.getBytes(coding_scheme);
+					                ciphertext = des3u.des3EncodeECB(key, data); 
+					                des_tf2.setText(Base64.getEncoder().encodeToString(ciphertext));
+					            } catch (Exception e1) { return; }
+					        }
+					        break;
+					        
+					    default:
+					    	return;
+					}   //end case
 				}
 			});
 			
@@ -375,24 +424,51 @@ public class  Coder
 			{
 				public void actionPerformed(ActionEvent e)
 				{
-					String strKey = des_tf3.getText();
+				    String strKey = des_tf3.getText();
 					String strIv = des_tf4.getText();
-					byte[] data,key,iv;
-					if (strKey.length() != 24) {
-						des_tf1.setText("---The length of the key must be 24!----");
-						return;
-					}
-					if (strIv.length() != 8) {
-						des_tf1.setText("---The length of the IV must be 8!----");
-						return;
-					}
-					try {
-					    key = strKey.getBytes(coding_scheme);
-					    iv = strIv.getBytes(coding_scheme);
-					    data = Base64.getDecoder().decode(des_tf2.getText());
-					    byte[] plaintext = des3u.des3DecodeCBC(key, iv, data); 
-					    des_tf1.setText(new String(plaintext));
-					} catch (Exception e1) { return; }
+					byte[] data,key,iv,ciphertext;
+						
+					switch (cipher_algorithm) {   
+					    case 0:   // AES
+					        break;
+					    
+					    case 1:  // 3DES
+					        if (encrypt_mode == 0)  {  //CBC
+					            if (strKey.length() != 24) {
+						            des_tf1.setText("---The length of the key must be 24!----");
+						            return;
+					            }
+					            if (strIv.length() != 8 )  {
+						            des_tf1.setText("---The length of the IV must be 8 !----");
+						            return;
+					            }
+					
+					            try {
+					                key = strKey.getBytes(coding_scheme);
+					                iv = strIv.getBytes(coding_scheme);
+					                data = Base64.getDecoder().decode(des_tf2.getText());
+								    byte[] plaintext = des3u.des3DecodeCBC(key, iv, data); 
+								    des_tf1.setText(new String(plaintext));
+					            } catch (Exception e1) { return; }
+					        }
+					        else if (encrypt_mode == 1) { //ECB
+					        	if (strKey.length() != 24) {
+						            des_tf1.setText("---The length of the key must be 24!----");
+						            return;
+					            }
+					
+					            try {
+					                key = strKey.getBytes(coding_scheme);
+					                data = Base64.getDecoder().decode(des_tf2.getText());
+								    byte[] plaintext = des3u.des3DecodeECB(key, data); 
+								    des_tf1.setText(new String(plaintext));
+					            } catch (Exception e1) { return; }
+					        }
+					        break;
+					        
+					    default:
+					    	return;
+					}   //end case				
 				}
 			});
 			
@@ -400,10 +476,45 @@ public class  Coder
 			{
 				public void actionPerformed(ActionEvent e)
 				{
-								
 					des_tf1.setText("");
 					des_tf2.setText("");
-					
+				}
+			});
+			
+			des_jrb1.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{			
+					cipher_algorithm = 0;  //AES
+				}
+			});
+			
+			des_jrb2.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{			
+					cipher_algorithm = 1;   //3DES
+				}
+			});
+			
+			des_jrb3.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{			
+					encrypt_mode = 0;  //CBC
+					des_tf4.setEditable(true);
+					des_tf4.setText(tmpIV);
+				}
+			});
+			
+			des_jrb4.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{			
+					encrypt_mode = 1;   //ECB
+					des_tf4.setEditable(false);
+					tmpIV = des_tf4.getText();
+					des_tf4.setText("");
 				}
 			});
 		}
