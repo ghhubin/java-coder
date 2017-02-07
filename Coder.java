@@ -379,11 +379,11 @@ public class  Coder
 					    case 0:   // AES
 					    	if (encrypt_mode == 0)  {  //CBC
 					            if (strKey.length() != 16) {
-					    		    des_tf2.setText("---The length of the key must be 24!----");
+					    		    des_tf2.setText("---The length of the key must be 16!----");
 					    		    return;
 					    		}
 					    		if (strIv.length() != 16) {
-					    		    des_tf2.setText("---The length of the IV must be 8!----");
+					    		    des_tf2.setText("---The length of the IV must be 16!----");
 					    		    return;
 					    		}
 					
@@ -398,7 +398,7 @@ public class  Coder
 					        }
 					    	else if (encrypt_mode == 1) { //ECB
 					    	    if (strKey.length() != 16) {
-					                des_tf2.setText("---The length of the key must be 24!----");
+					                des_tf2.setText("---The length of the key must be 16!----");
 					                return;
 				                }
 				
@@ -467,11 +467,11 @@ public class  Coder
 					    case 0:   // AES
 					    	if (encrypt_mode == 0)  {  //CBC
 					    		if (strKey.length() != 16) {
-					    		    des_tf1.setText("---The length of the key must be 24!----");
+					    		    des_tf1.setText("---The length of the key must be 16!----");
 					    		    return;
 					    		}
 					    		if (strIv.length() != 16 )  {
-					    		    des_tf1.setText("---The length of the IV must be 8 !----");
+					    		    des_tf1.setText("---The length of the IV must be 16 !----");
 					    		    return;
 					    		}
 					
